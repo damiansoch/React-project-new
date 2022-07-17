@@ -1,61 +1,49 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import CardList from "./components/card-list/card-list.component.jsx";
 import SearchBox from "./components/search-box/search-box.component";
 
-class App extends Component {
-  constructor() {
-    super();
+const App = () => {
+  const [searchField, setSearchField] = useState(""); //[value,setValue] = setState(initial value)
+  const [monsters, setMonsters] = useState([]);
+  const [filteredMonsters, setFilteredMonsters] = useState(monsters);
 
-    this.state = {
-      monsters: [],
-      searchField: "",
-    };
-  }
+  //useEffect(()=>{},[]) callback function (effect that we want to happend) and array of dependancis (state values or props)
+  // wherever the values in the array will change, then i will run the function
 
-  componentDidMount() {
+  useEffect(() => {
     fetch("https://jsonplaceholder.typicode.com/users")
       .then((response) => response.json())
-      .then((users) =>
-        this.setState(() => {
-          return { monsters: users };
-        })
-      );
-  }
-  //eventHandlef function: onChange()
-  changeHandler = (event) => {
-    const searchField = event.target.value.toLocaleLowerCase();
+      .then((users) => setMonsters(users));
+  }, []);
+  // this will be run when the app loads the first time, amd thats it, because the arrau is empty
+
+  const changeHandler = (event) => {
+    const searchFieldString = event.target.value.toLocaleLowerCase();
     // we need to do it, because includes() is not case sensitive
-    this.setState(() => {
-      return { searchField };
-      //this is actually return{searchField:searchField}
-    });
+    setSearchField(searchFieldString);
   };
-
-  render() {
-    const { monsters, searchField } = this.state;
-    const { changeHandler } = this;
-    //we are going this so we dont have to use this and this state every time now /**/
-
-    //creating and filetring the filteren monsters const based on the searchField
-    const filteredMonsters = /**/ monsters.filter((monster) => {
-      //when going through th array, it will return true or lafse,
-      //this will either keep the element or get rid of this
+  useEffect(() => {
+    const newFilteredMonsters = /**/ monsters.filter((monster) => {
       return monster.name.toLocaleLowerCase().includes(/**/ searchField);
     });
-    return (
-      <div className="App">
-        <h1 className="app-title">Monster Rolodex</h1>
-        <SearchBox
-          OnChangeHandler={changeHandler}
-          placeholder="Search Monsters"
-          className="search-box"
-        />
-        <CardList monsters={filteredMonsters} />
-      </div>
-    );
-  }
-}
+    setFilteredMonsters(newFilteredMonsters);
+  }, [searchField, monsters]);
+  // so in this case we will rub the mapping over monsters, and set up the setFiltered monster only when
+  //the search field updates or the monters updates
+
+  return (
+    <div className="App">
+      <h1 className="app-title">Monster Rolodex</h1>
+      <SearchBox
+        OnChangeHandler={changeHandler}
+        placeholder="Search Monsters"
+        className="search-box"
+      />
+      <CardList monsters={filteredMonsters} />
+    </div>
+  );
+};
 
 export default App;
